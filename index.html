@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pohon Nasab</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://github.com/MerpatiQuu/Home/blob/main/log.png?raw=true">
+
+    <!-- Open Graph Meta Tags (Untuk pratinjau saat dibagikan) -->
+    <meta property="og:title" content="Pohon Nasab">
+    <meta property="og:description" content="Silaturrahmi menumbuhkan rezeki.">
+    <meta property="og:image" content="https://github.com/MerpatiQuu/Home/blob/main/log.png?raw=true">
+    <meta property="og:url" content="https://github.com/MerpatiQuu/Home/blob/main/log.png?raw=true">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="https://github.com/MerpatiQuu/Home/blob/main/log.png?raw=true">
+    <meta name="twitter:title" content="Pohon Nasab">
+    <meta name="twitter:description" content="Silaturrahmi menumbuhkan rezeki.">
+    <meta name="twitter:image" content="https://github.com/MerpatiQuu/Home/blob/main/log.png?raw=true">
+
+    <!-- Font Awesome & GoJS -->
+    <script src="https://unpkg.com/gojs/release/go.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <style>
+/* ==== Global Styles ==== */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f4f4;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+/* ==== Diagram Styling ==== */
+#myDiagramDiv {
+    width: 100%;
+    height: 500px;
+    border: 1px solid #ccc;
+    background: white;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    position: start;
+    top: -10px;
+}
+
+/* ==== Modal Styling ==== */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 20px 25px;
+    border-radius: 10px;
+    box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 420px;
+    text-align: left;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+
+    /* Tambahan untuk scroll */
+    max-height: 80vh; /* Modal tidak melebihi 80% tinggi layar */
+    overflow-y: auto; /* Aktifkan scroll jika konten melebihi modal */
+}
+
+/* Modal Tampil */
+.modal.show {
+    display: block;
+    opacity: 1;
+}
+
+/* Judul Modal */
+.modal h2 {
+    margin: 0 0 15px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+}
+
+/* ==== Close Button ==== */
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 18px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-weight: bold;
+    color: #666;
+    transition: color 0.2s ease-in-out;
+}
+
+.close-btn:hover {
+    color: #ff3b3b;
+}
+
+/* ==== Form Styling ==== */
+.form-group {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 0 5px; /* Beri jarak antara input dan batas modal */
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+/* Input & Select */
+.form-group input, 
+.form-group select {
+    width: 100%; /* Gunakan 100% dari form-group */
+    max-width: 350px; /* Batasi lebar maksimal */
+    height: 38px; /* Sedikit lebih kecil agar lebih proporsional */
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    appearance: none; /* Menghilangkan default style dari select */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    box-sizing: border-box;
+}
+
+/* Fokus pada Input */
+.form-group input:focus, 
+.form-group select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 6px rgba(0, 123, 255, 0.2);
+    background: white;
+    outline: none;
+}
+
+/* Select dengan Ikon Dropdown */
+.form-group select {
+    background: white url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="gray"><path d="M7 10l5 5 5-5z"></path></svg>') no-repeat right 10px center;
+    background-size: 16px;
+    padding-right: 30px; /* Beri ruang untuk ikon */
+}
+
+/* ==== Button Group Styling ==== */
+.button-group {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+}
+
+/* Tombol */
+.button-group button {
+    flex: 1;
+    height: 38px; /* Ukuran lebih kecil agar proporsional */
+    border: none;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+/* Hover Effect */
+.button-group button:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+/* Warna Tombol */
+.button-group button:nth-child(1) { background-color: #007bff; color: white; } /* Simpan */
+.button-group button:nth-child(2) { background-color: #dc3545; color: white; } /* Hapus */
+.button-group button:nth-child(3) { background-color: #17b82a; color: white; } /* Pasangan */
+.button-group button:nth-child(4) { background-color: #f39c12; color: white; } /* Anak */
+#formContainer {
+    display: none;  /* Initially hidden */
+}
+.form-container {
+        margin-top: 10px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background: #f9f9f9;
+    }
+    .form-group {
+        margin-bottom: 10px;
+    }
+    .form-group label {
+        display: block;
+        font-weight: bold;
+    }
+    .add-group {
+        margin-bottom: 10px;
+    }
+/* ==== Responsiveness ==== */
+@media (max-width: 400px) {
+    .modal {
+        width: 95%;
+        padding: 18px;
+    }
+    
+    .form-group input, 
+    .form-group select, 
+    .button-group button, 
+    .add-buttons button {
+        height: 36px; /* Lebih kecil di layar kecil */
+    }
+
+    .button-group, 
+    .add-buttons {
+        flex-direction: column;
+    }
+}
+
+/* ==== Hidden Class ==== */
+.hidden {
+    display: none;
+}
+
+    </style>
+</head>
+<body>
+    <h2>Bani Jumadi</h2>
+    <div id="myDiagramDiv"></div>
+    <div id="modal" class="modal">
+        <button class="close-btn" onclick="closeModal()">X</button>
+        <h2>Edit Data</h2>
+        <div class="form-group">
+            <label for="key">Key:</label>
+            <input type="text" id="key">
+        </div>
+        <div class="form-group">
+            <label for="personName">Nama:</label>
+            <input type="text" id="personName">
+        </div>
+        <div class="form-group">
+            <label for="personGender">Gender:</label>
+            <select id="personGender">
+                <option value="">-</option>
+                <option value="male">Laki-laki</option>
+                <option value="female">Perempuan</option>
+            </select>
+        </div>
+<div class="form-group" style="display: none;">
+    <label for="spouse">Pasangan:</label>
+    <input type="text" id="spouse" name="spouse">
+</div>
+
+<div class="form-group" style="display: none;">
+    <label for="parent">Orang Tua:</label>
+    <input type="text" id="parent" name="parent">
+</div>
+        <div class="form-group">
+            <label for="alamat">Alamat:</label>
+            <input type="text" id="alamat">
+        </div>
+        <div class="form-group">
+            <label for="tel">Telepon:</label>
+            <input type="text" id="tel" placeholder="+62...">
+        </div>
+        <div class="button-group">
+            <button onclick="saveEdit()"><i class="fa fa-save"></i></button>
+            <button onclick="removeNode()"><i class="fa fa-trash"></i></button>
+            <button onclick="showForm('Pasangan')"><i class="fa fa-user-plus"></i></button>
+            <button onclick="showForm('Anak')"><i class="fa fa-child"></i></button>
+        </div>
+        <form id="formContainer" action="https://script.google.com/macros/s/AKfycbyrINSEA3zJepx7Bw_Jdg021C-u1gRzCUcspvxIFcrgdP1vthfO1Yp0wK7dKa46pEsE/exec" method="POST">
+            <div class="form-container">
+                <h3 id="formTitle">Form Data Submission</h3>
+        
+                <!-- Nama -->
+                <div class="form-group">
+                    <label for="personName">Nama:</label>
+                    <input type="text" id="personName" name="name" required>
+                </div>
+        
+                <!-- Gender -->
+                <div class="form-group">
+                    <label for="personGender">Gender:</label>
+                    <select id="personGender" name="gender" required>
+                        <option value="">-</option>
+                        <option value="male">Laki-laki</option>
+                        <option value="female">Perempuan</option>
+                    </select>
+                </div>
+        
+                <!-- Pasangan -->
+                <div class="form-group" style="display: none;">
+                    <label for="spouse">Pasangan:</label>
+                    <input type="text" id="spouse" name="spouse" readonly>
+                </div>
+        
+                <!-- Orang Tua -->
+                <div class="form-group" style="display: none;">
+                    <label for="parent">Orang Tua:</label>
+                    <input type="text" id="parent" name="parent" readonly>
+                </div>
+        
+                <!-- Alamat -->
+                <div class="form-group">
+                    <label for="alamat">Alamat:</label>
+                    <input type="text" id="alamat" name="alamat">
+                </div>
+        
+                <!-- Telepon -->
+                <div class="form-group">
+                    <label for="tel">Telepon:</label>
+                    <input type="text" id="tel" name="tel" placeholder="+62...">
+                </div>
+        
+                <!-- Tombol Submit -->
+                <button type="submit" class="btn" style="background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                    <i class="fa fa-save"></i> Submit
+                </button>
+        
+                <!-- Tombol Cancel -->
+                <button id="cancelButton" onclick="hideForm()" style="background-color: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                    <i class="fa fa-times"></i> Cancel
+                </button>
+            </div>
+        </form>                
+
+    <script>
+
+        var $ = go.GraphObject.make;
+        var myDiagram = $(go.Diagram, "myDiagramDiv", {
+            "undoManager.isEnabled": true,
+            layout: $(go.TreeLayout, {
+    angle: 90,
+    layerSpacing: 50,
+    nodeSpacing: 30,
+    alignment: go.TreeLayout.AlignmentCenter,
+    sorting: go.TreeLayout.SortingAscending
+            })
+        });
+
+        myDiagram.nodeTemplate = $(go.Node, "Auto",
+  {
+    click: function(e, obj) { 
+      var node = obj.part;
+      if (node !== null) {
+        document.getElementById("key").value = node.data.key || "";
+        document.getElementById("personName").value = node.data.name || "";
+        document.getElementById("personGender").value = node.data.gender || "male";
+        document.getElementById("alamat").value = node.data.alamat || "";
+        document.getElementById("tel").value = node.data.tel || "";
+        document.getElementById("modal").style.display = "block";
+        selectedNode = node;
+      }
+    }
+  },
+  
+  // Shape untuk Node, memastikan bentuk mengikuti ukuran teks
+  $(go.Shape, "RoundedRectangle", {
+    width: 100, height: 40, strokeWidth: 2, fill: "white",
+  },
+    new go.Binding("stroke", "gender", function(g) {
+      return g === "male" ? "gold" : "red";
+    })
+  ),
+  
+  // TextBlock untuk menampilkan nama, dengan teks yang bisa ter-wrap
+  $(go.TextBlock, {
+    margin: 5,
+    maxSize: new go.Size(90, NaN),  // Membatasi lebar TextBlock agar wrap terjadi
+    wrap: go.TextBlock.WrapFit,  // Membungkus teks agar rapi
+    overflow: go.TextBlock.OverflowEllipsis,  // Menambahkan ellipsis jika teks terlalu panjang
+    font: "bold 10px sans-serif",  // Menyesuaikan ukuran font
+    textAlign: "center"  // Menyelaraskan teks ke tengah
+  }, 
+    new go.Binding("text", "name")  // Mengikat data 'name' ke TextBlock
+  )
+);
+
+
+        myDiagram.linkTemplate =
+  $(go.Link,
+    { routing: go.Link.AvoidsNodes, curve: go.Link.JumpOver },  // Pengaturan gaya garis
+    $(go.Shape),  // Garis utama
+    $(go.Shape, { toArrow: "Standard" }),  // Panah di ujung
+
+    // Menambahkan ikon di tengah garis
+    $(go.Panel, "Auto",
+      {
+        segmentFraction: 0.5,  // Posisikan ikon di tengah-tengah garis
+        segmentOrientation: function(link) {
+          // Cek orientasi garis
+          if (link.actualBounds.width > link.actualBounds.height) {
+            // Garis horizontal
+            return go.Link.OrientUpright;  // Ikon tetap tegak
+          } else {
+            // Garis vertikal
+            return go.Link.OrientSideways;  // Ikon horizontal
+          }
+        }
+      },
+      $(go.TextBlock, "🪢", { font: "bold 10px sans-serif", stroke: "black" }) // Ikon anak
+    )
+  );
+  var selectedNode = null;
+
+function saveEdit() {
+    if (selectedNode) {
+        console.log("saveEdit called for node: ", selectedNode.data.key);
+
+        // Ambil nilai dari form
+        var keyValue = document.getElementById("key") ? document.getElementById("key").value : "";
+        var nameValue = document.getElementById("personName") ? document.getElementById("personName").value : "";
+        var genderValue = document.getElementById("personGender") ? document.getElementById("personGender").value : "";
+        var spouseValue = document.getElementById("spouse") ? document.getElementById("spouse").value : "";
+        var parentValue = document.getElementById("parent") ? document.getElementById("parent").value : "";
+        var alamatValue = document.getElementById("alamat") ? document.getElementById("alamat").value : "";
+        var telValue = document.getElementById("tel") ? document.getElementById("tel").value : "";
+
+        console.log("Form values - Key: ", keyValue, " Name: ", nameValue, " Gender: ", genderValue, " Spouse: ", spouseValue, " Parent: ", parentValue);
+
+        // Perbarui data di diagram (diagram internal)
+        myDiagram.model.startTransaction("Edit Node");
+        myDiagram.model.setDataProperty(selectedNode.data, "key", keyValue);
+        myDiagram.model.setDataProperty(selectedNode.data, "name", nameValue);
+        myDiagram.model.setDataProperty(selectedNode.data, "gender", genderValue);
+        myDiagram.model.setDataProperty(selectedNode.data, "spouse", spouseValue); // Even if empty, won't affect sheet
+        myDiagram.model.setDataProperty(selectedNode.data, "parent", parentValue); // Even if empty, won't affect sheet
+        myDiagram.model.setDataProperty(selectedNode.data, "alamat", alamatValue);
+        myDiagram.model.setDataProperty(selectedNode.data, "tel", telValue);
+        myDiagram.model.commitTransaction("Edit Node");
+
+        // Kirim data melalui doPost
+        var postData = {
+            'key': keyValue,
+            'name': nameValue,
+            'gender': genderValue,
+            'spouse': spouseValue || '',  // Send empty string if no change
+            'parent': parentValue || '',  // Send empty string if no change
+            'alamat': alamatValue,
+            'tel': telValue
+        };
+
+        // Memanggil doPost menggunakan Fetch API
+        fetch('https://script.google.com/macros/s/AKfycbwOXF1arFcF4hSV3o8mooR2pn7CPFZqodPwTobVKkStyJyA7ZM-otizJXihm1gJrcg/exec', {
+            method: 'POST',
+            body: new URLSearchParams(postData),
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+            closeModal(); // Tutup modal setelah berhasil
+            location.reload();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            location.reload();
+        });
+    }
+}
+
+        let formType = ""; // Menyimpan apakah form digunakan untuk pasangan atau anak
+
+        function showForm(type) {
+            console.log("showForm called with type:", type); 
+    formType = type;
+    document.getElementById("formTitle").innerText = "Tambah " + type;
+    document.getElementById("formContainer").style.display = "block";
+
+    // Bersihkan form sebelum digunakan
+    document.querySelector("#formContainer #personName").value = "";
+    document.querySelector("#formContainer #personGender").value = "";
+    document.querySelector("#formContainer #alamat").value = "";
+    document.querySelector("#formContainer #tel").value = "";
+    document.querySelector("#formContainer #spouse").value = "";
+    document.querySelector("#formContainer #parent").value = "";
+
+    var genderDropdown = document.querySelector("#formContainer #personGender");
+
+    // Set gender dropdown sesuai dengan tipe form
+    if (type === "Pasangan" && selectedNode) {
+        var nodeGender = selectedNode.data.gender;
+        var spouseGender = nodeGender === "male" ? "female" : "male";
+        genderDropdown.value = spouseGender;
+        genderDropdown.disabled = false; // Kunci dropdown agar tidak bisa diubah
+    } else {
+        genderDropdown.value = "";
+        genderDropdown.disabled = false; // Biarkan bisa dipilih manual untuk anak
+    }
+
+    // Mengisi pasangan jika tipe form adalah "Pasangan"
+    if (type === "Pasangan" && selectedNode) {
+            document.querySelector("#formContainer #spouse").value = selectedNode.key;
+    }
+
+    // Mengisi orang tua jika tipe form adalah "Anak"
+    if (type === "Anak" && selectedNode) {
+        document.querySelector("#formContainer #parent").value = selectedNode.data.key;
+    }
+}
+
+
+        function hideForm() {
+            document.getElementById("formContainer").style.display = "none";
+            document.getElementById("modal").style.display = "none"; 
+        }
+        document.getElementById("formContainer").addEventListener("submit", function (event) {
+    event.preventDefault(); // Prevent form from submitting normally
+
+    const form = this;
+    const formData = new FormData(form);
+
+    // Get form field values
+    var name = document.getElementById('personName').value.trim();
+    var gender = document.getElementById('personGender').value;
+    var alamat = document.getElementById('alamat').value;
+    var tel = document.getElementById('tel').value;
+    var spouseKey = document.getElementById('spouse').value.trim();
+    var parentKey = document.getElementById('parent').value.trim();
+
+    // Set formType based on some condition (this is just an example, you can modify it as per your logic)
+    var formType = spouseKey ? "Pasangan" : parentKey ? "Anak" : "";
+
+    // Check if the form type is 'Pasangan' or 'Anak' and call appropriate function
+    if (formType === "Pasangan") {
+        addSpouse(name, gender, alamat, tel); // Function to add spouse
+    } else if (formType === "Anak") {
+        addChild(name, gender, alamat, tel); // Function to add child
+    }
+
+    // Data to send in the POST request
+    var dataToSend = {
+        name: name,
+        gender: gender,
+        spouse: spouseKey ? parseInt(spouseKey) : "",
+        parent: parentKey ? parseInt(parentKey) : "",
+        alamat: alamat,
+        tel: tel
+    };
+
+    // Make the fetch request to the Google Apps Script endpoint
+    fetch('https://script.google.com/macros/s/AKfycbyrINSEA3zJepx7Bw_Jdg021C-u1gRzCUcspvxIFcrgdP1vthfO1Yp0wK7dKa46pEsE/exec', {
+        method: 'POST',
+        mode: 'cors',
+        body: formData // Use formData directly
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
+        }
+        return response.json(); // Parse JSON response
+    })
+    .then(data => {
+        console.log('Success:', data);
+        alert('Input Berhasil');
+        form.reset(); // Clear the form fields
+        hideForm(); // Hide the form after successful submission
+        location.reload();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        form.reset(); // Clear the form fields
+        hideForm(); // Hide the form after error
+        location.reload();
+    });
+});
+
+function addSpouse(name, gender, alamat, tel) {
+            if (!selectedNode) return;
+
+            var nodeData = selectedNode.data;
+            var existingSpouses = nodeData.spouses || [];
+
+            // Cek apakah pasangan ini sudah ada
+            if (existingSpouses.some(spouseKey => {
+                var spouseNode = myDiagram.model.findNodeDataForKey(spouseKey);
+                return spouseNode && spouseNode.name === name;
+            })) {
+                alert("Pasangan ini sudah terdaftar!");
+                return;
+            }
+
+            var newKey = Math.max(...myDiagram.model.nodeDataArray.map(n => n.key), 0) + 1;
+            var spouseLocation = selectedNode.location.copy();
+            spouseLocation.x += 150;
+
+            myDiagram.model.startTransaction("Add Spouse");
+
+            myDiagram.model.addNodeData({
+                key: newKey,
+                name: name,
+                gender: gender,
+                spouses: [nodeData.key],
+                alamat: alamat,
+                tel: tel,
+                loc: go.Point.stringify(spouseLocation)
+            });
+
+            existingSpouses.push(newKey);
+            myDiagram.model.setDataProperty(nodeData, "spouses", existingSpouses);
+
+            myDiagram.model.addLinkData({
+                from: nodeData.key,
+                to: newKey,
+                category: "Spouse"
+            });
+
+            myDiagram.model.commitTransaction("Add Spouse");
+            myDiagram.layoutDiagram(true);
+        }
+
+        function addChild(name, gender, alamat, tel) {
+            if (!selectedNode) return;
+
+            var newKey = Math.max(...myDiagram.model.nodeDataArray.map(n => n.key), 0) + 1;
+            var childX = selectedNode.location.x;
+            var childY = selectedNode.location.y + 100;
+
+            myDiagram.model.startTransaction("Add Child");
+
+            myDiagram.model.addNodeData({
+                key: newKey,
+                name: name,
+                gender: gender,
+                parent: selectedNode.data.key,
+                alamat: alamat,
+                tel: tel,
+                loc: go.Point.stringify(new go.Point(childX, childY))
+            });
+
+            myDiagram.model.addLinkData({ from: selectedNode.data.key, to: newKey });
+
+            myDiagram.model.commitTransaction("Add Child");
+            myDiagram.layoutDiagram(true);
+        }
+        function populateForm() {
+    if (!selectedNode) {
+        console.log("No node selected.");
+        return;
+    }
+
+    var nodeData = selectedNode.data;
+    console.log("Selected node data:", nodeData); // Log the entire node data
+
+    // Memanggil formType dari showForm
+    if (formType === "Pasangan") {
+        var spouseKey = nodeData.spouses && nodeData.spouses.length > 0 ? nodeData.spouses[0] : null;
+        if (spouseKey) {
+            var spouseNode = myDiagram.model.findNodeDataForKey(spouseKey);
+            document.getElementById('spouse').value = spouseNode ? spouseNode.name : "Tidak ada pasangan";
+        } else {
+            document.getElementById('spouse').value = "Tidak ada pasangan";
+        }
+        console.log("Spouse value:", document.getElementById('spouse').value); // Log spouse value
+    } else if (formType === "Anak") {
+        var parentKey = nodeData.parent || null;
+        if (parentKey) {
+            var parentNode = myDiagram.model.findNodeDataForKey(parentKey);
+            document.getElementById('parent').value = parentNode ? parentNode.name : "Tidak ada orang tua";
+        } else {
+            document.getElementById('parent').value = "Tidak ada orang tua";
+        }
+        console.log("Parent value:", document.getElementById('parent').value); // Log parent value
+    }
+}
+
+
+function focusOnNode(nodeKey) {
+    console.log("Focusing on node with key:", nodeKey);  // Log key node yang dipilih
+
+    var selectedNode = myDiagram.findNodeForKey(nodeKey);
+    if (!selectedNode) {
+        console.log("Node not found");
+        return;
+    }
+
+    // Log node yang ditemukan
+    console.log("Selected Node:", selectedNode);
+
+    // Ambil semua node yang berhubungan dengan node yang dipilih (anak-cucu)
+    var relatedNodes = getDescendants(selectedNode);
+    console.log("Related Nodes:", relatedNodes);  // Log semua keturunan node
+
+    // Sembunyikan semua node terlebih dahulu
+    myDiagram.nodes.each(node => {
+        console.log("Hiding node:", node);  // Log setiap node yang disembunyikan
+        node.visible = false;
+    });
+
+    // Tampilkan node yang terhubung
+    relatedNodes.forEach(node => {
+        console.log("Showing node:", node);  // Log setiap node yang ditampilkan
+        node.visible = true;
+    });
+
+    // Pusatkan tampilan ke node yang dipilih
+    console.log("Centering on node:", selectedNode.actualBounds);
+    myDiagram.centerRect(selectedNode.actualBounds);
+}
+
+function getDescendants(node) {
+    let descendants = [node]; // Tambahkan node utama
+
+    console.log("Getting descendants for node:", node.key);  // Log untuk melihat node yang sedang diproses
+
+    node.findTreeChildrenNodes().each(child => {
+        console.log("Found child node:", child);  // Log untuk setiap anak yang ditemukan
+        descendants = descendants.concat(getDescendants(child)); // Rekursi untuk ambil anak-cucu
+    });
+
+    return descendants;
+}
+
+
+        function closeModal() {
+            document.getElementById("modal").style.display = "none";
+        }
+        function removeNode() {
+    if (!selectedNode) {
+        console.error("Tidak ada node yang dipilih.");
+        return;
+    }
+
+    myDiagram.startTransaction("Remove Node");
+
+    // Temukan semua link yang terhubung ke node
+    var connectedLinks = selectedNode.findLinksConnected();
+    while (connectedLinks.next()) {
+        myDiagram.model.removeLinkData(connectedLinks.value.data);
+    }
+
+    // Hapus node dari model
+    myDiagram.model.removeNodeData(selectedNode.data);
+
+    // Kirim permintaan untuk menghapus data di database (Google Sheets)
+    var key = selectedNode.data.key;
+
+    // URL API Google Apps Script
+    var url = "https://script.google.com/macros/s/AKfycbyJh60Ht_zCCwBm2UOCoMUFtuXNaSg4riMmBS17Zt1bF8NlvCn2efkDFENUzsvMoAr_/exec";
+    
+    // Mengirim permintaan POST dengan parameter key untuk menghapus data
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+            "key": key
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            console.log("Data dihapus:", data);
+            location.reload();
+        } else {
+            console.error("Gagal menghapus data:", data.message || "Unknown error");
+        }
+        
+    })
+    .catch(error => {
+        console.error("Error menghapus data:", error);
+        location.reload();
+    });
+
+    // Hapus seleksi agar tidak ada node yang tersisa dalam status "terpilih"
+    selectedNode = null;
+    myDiagram.clearSelection();
+
+    myDiagram.commitTransaction("Remove Node");
+
+    closeModal();
+}
+
+
+        fetch("https://script.google.com/macros/s/AKfycbzNaPAbgKZqtoaURJfAOSLjwhml87s1Dn65eVCJlkjjud1us2KDOli4BjbR-Xlq9sws/exec")
+    .then(response => response.json())
+    .then(data => {
+        console.log("Data diterima:", data); // Debugging
+
+        // Jika data yang diterima adalah array, bungkus ke dalam objek nodes dan links
+        if (Array.isArray(data)) {
+            data = { nodes: data, links: [] };
+        }
+
+        // Memeriksa apakah data memiliki format yang benar
+        if (!data.nodes || !data.links) {
+            throw new Error("Data tidak sesuai format!");
+        }
+
+        // Modifikasi links untuk pasangan
+        data.links.forEach(link => {
+            if (link.category === 'Spouse') {
+                // Jika kategori adalah 'Spouse', ubah hubungan dari 'from' ke 'to'
+                let temp = link.from;
+                link.from = link.to;
+                link.to = temp;
+            }
+
+            // Menghapus properti 'key' jika ada
+            delete link.key;
+        });
+
+            myDiagram.model = new go.GraphLinksModel(data.nodes, data.links);
+        
+    })
+    .catch(error => {
+        console.error("Error fetching data:", error);
+        alert("Gagal mengambil data dari server!");
+    });
+
+    
+ 
+    myDiagram.linkTemplateMap.add("Spouse",
+  $(go.Link,
+    { routing: go.Link.Orthogonal, selectable: false }, // Garis tidak bisa dipilih
+    $(go.Shape, { stroke: "green", strokeWidth: 2 }), // Garis hijau
+    $(go.TextBlock, "❤️",  // Ikon pernikahan
+      { 
+        segmentFraction: 0.5, // Posisikan ikon di tengah garis
+        font: "10px Arial",
+        stroke: "red",
+        
+        // Gunakan logika untuk orientasi tergantung pada panjang link
+        segmentOrientation: function(link) {
+          if (link.actualBounds.width > link.actualBounds.height) {
+            return go.Link.OrientUpright; // Orientasi tegak untuk garis horizontal
+          } else {
+            return go.Link.OrientSideways; // Orientasi datar untuk garis vertikal
+          }
+        }
+      }
+    )
+  )
+);
+
+    </script>
+</body>
+</html>
