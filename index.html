@@ -24,6 +24,7 @@
     <script src="https://unpkg.com/gojs/release/go.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 
     <style>
 /* ==== Global Styles ==== */
@@ -38,7 +39,7 @@ body {
 /* ==== Diagram Styling ==== */
 #myDiagramDiv {
     width: 100%;
-    height: 500px;
+    height: 600px;
     border: 1px solid #ccc;
     background: white;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
@@ -330,82 +331,124 @@ body {
 
     <script>
 
-        var $ = go.GraphObject.make;
-        var myDiagram = $(go.Diagram, "myDiagramDiv", {
-            "undoManager.isEnabled": true,
-            layout: $(go.TreeLayout, {
-    angle: 90,
-    layerSpacing: 50,
-    nodeSpacing: 30,
-    alignment: go.TreeLayout.AlignmentCenter,
-    sorting: go.TreeLayout.SortingAscending
-            })
-        });
-
-        myDiagram.nodeTemplate = $(go.Node, "Auto",
-  {
-    click: function(e, obj) { 
-      var node = obj.part;
-      if (node !== null) {
-        document.getElementById("key").value = node.data.key || "";
-        document.getElementById("personName").value = node.data.name || "";
-        document.getElementById("personGender").value = node.data.gender || "male";
-        document.getElementById("alamat").value = node.data.alamat || "";
-        document.getElementById("tel").value = node.data.tel || "";
-        document.getElementById("modal").style.display = "block";
-        selectedNode = node;
-      }
-    }
-  },
-  
-  // Shape untuk Node, memastikan bentuk mengikuti ukuran teks
-  $(go.Shape, "RoundedRectangle", {
-    width: 100, height: 40, strokeWidth: 2, fill: "white",
-  },
-    new go.Binding("stroke", "gender", function(g) {
-      return g === "male" ? "gold" : "red";
+var $ = go.GraphObject.make;
+var myDiagram = $(go.Diagram, "myDiagramDiv", {
+    "undoManager.isEnabled": true,
+    layout: $(go.TreeLayout, {
+        angle: 90,
+        layerSpacing: 50,
+        nodeSpacing: 30,
+        alignment: go.TreeLayout.AlignmentCenter,
+        sorting: go.TreeLayout.SortingAscending
     })
-  ),
-  
-  // TextBlock untuk menampilkan nama, dengan teks yang bisa ter-wrap
-  $(go.TextBlock, {
-    margin: 5,
-    maxSize: new go.Size(90, NaN),  // Membatasi lebar TextBlock agar wrap terjadi
-    wrap: go.TextBlock.WrapFit,  // Membungkus teks agar rapi
-    overflow: go.TextBlock.OverflowEllipsis,  // Menambahkan ellipsis jika teks terlalu panjang
-    font: "bold 10px sans-serif",  // Menyesuaikan ukuran font
-    textAlign: "center"  // Menyelaraskan teks ke tengah
-  }, 
-    new go.Binding("text", "name")  // Mengikat data 'name' ke TextBlock
-  )
+});
+
+myDiagram.nodeTemplate = $(go.Node, "Auto",
+    {
+        click: function (e, obj) {
+            var node = obj.part;
+            if (node !== null) {
+                focusConnectedNodes(node);
+            }
+        },
+        doubleClick: function (e, obj) {
+            var node = obj.part;
+            if (node !== null) {
+                document.getElementById("key").value = node.data.key || "";
+                document.getElementById("personName").value = node.data.name || "";
+                document.getElementById("personGender").value = node.data.gender || "male";
+                document.getElementById("alamat").value = node.data.alamat || "";
+                document.getElementById("tel").value = node.data.tel || "";
+                document.getElementById("modal").style.display = "block";
+                selectedNode = node;
+            }
+        }
+    },
+
+    $(go.Shape, "RoundedRectangle", {
+        width: 100, height: 40, strokeWidth: 2, fill: "white",
+    },
+        new go.Binding("stroke", "gender", function (g) {
+            return g === "male" ? "gold" : "red";
+        })
+    ),
+
+    $(go.TextBlock, {
+        margin: 5,
+        maxSize: new go.Size(90, NaN),
+        wrap: go.TextBlock.WrapFit,
+        overflow: go.TextBlock.OverflowEllipsis,
+        font: "bold 10px sans-serif",
+        textAlign: "center"
+    },
+        new go.Binding("text", "name")
+    )
 );
 
+myDiagram.linkTemplate =
+    $(go.Link,
+        { routing: go.Link.AvoidsNodes, curve: go.Link.JumpOver },
+        $(go.Shape),
+        $(go.Shape, { toArrow: "Standard" }),
 
-        myDiagram.linkTemplate =
-  $(go.Link,
-    { routing: go.Link.AvoidsNodes, curve: go.Link.JumpOver },  // Pengaturan gaya garis
-    $(go.Shape),  // Garis utama
-    $(go.Shape, { toArrow: "Standard" }),  // Panah di ujung
+        $(go.Panel, "Auto",
+            {
+                segmentFraction: 0.5,
+                segmentOrientation: function (link) {
+                    return link.actualBounds.width > link.actualBounds.height 
+                        ? go.Link.OrientUpright 
+                        : go.Link.OrientSideways;
+                }
+            },
+            $(go.TextBlock, "🪢", { font: "bold 10px sans-serif", stroke: "black" })
+        )
+    );
 
-    // Menambahkan ikon di tengah garis
-    $(go.Panel, "Auto",
-      {
-        segmentFraction: 0.5,  // Posisikan ikon di tengah-tengah garis
-        segmentOrientation: function(link) {
-          // Cek orientasi garis
-          if (link.actualBounds.width > link.actualBounds.height) {
-            // Garis horizontal
-            return go.Link.OrientUpright;  // Ikon tetap tegak
-          } else {
-            // Garis vertikal
-            return go.Link.OrientSideways;  // Ikon horizontal
-          }
-        }
-      },
-      $(go.TextBlock, "🪢", { font: "bold 10px sans-serif", stroke: "black" }) // Ikon anak
-    )
-  );
-  var selectedNode = null;
+// Fungsi untuk menyorot node yang dipilih dan semua node yang terhubung hingga ke bawah
+function focusConnectedNodes(selectedNode) {
+    myDiagram.startTransaction("highlight");
+
+    // Sembunyikan semua node & link terlebih dahulu
+    myDiagram.nodes.each(n => n.visible = false);
+    myDiagram.links.each(l => l.visible = false);
+
+    // Rekursi untuk menampilkan semua node yang terhubung
+    function showConnected(node) {
+        if (!node || node.visible) return;
+        node.visible = true;
+
+        // Tampilkan semua anak-anak (descendants)
+        node.findNodesOutOf().each(child => {
+            showConnected(child);
+        });
+
+        // Tampilkan pasangan (jika ada)
+        node.findNodesConnected().each(connectedNode => {
+            connectedNode.visible = true;
+        });
+
+        // Tampilkan semua link yang menghubungkan node-node terkait
+        node.findLinksConnected().each(link => {
+            link.visible = true;
+        });
+    }
+
+    // Mulai dari node yang dipilih
+    showConnected(selectedNode);
+
+    myDiagram.commitTransaction("highlight");
+}
+
+// Reset tampilan jika klik di luar node
+myDiagram.addDiagramListener("BackgroundSingleClicked", function () {
+    myDiagram.startTransaction("reset");
+    myDiagram.nodes.each(n => n.visible = true);
+    myDiagram.links.each(l => l.visible = true);
+    myDiagram.commitTransaction("reset");
+});
+
+var selectedNode = null;
+
 
 function saveEdit() {
     if (selectedNode) {
