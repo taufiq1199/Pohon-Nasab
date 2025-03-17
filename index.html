@@ -25,7 +25,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
 /* ==== Global Styles ==== */
 body {
@@ -46,6 +46,67 @@ body {
     border-radius: 10px;
     position: start;
     top: -10px;
+}
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: auto;
+}
+
+h2 {
+    font-size: 17px;
+    color: #333;
+    margin: 0;
+}
+
+input[type="text"] {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+    margin: 0 10px;
+    outline: none;
+    transition: all 0.3s ease-in-out;
+}
+
+input[type="text"]:focus {
+    border-color: #007bff;
+    box-shadow: 0px 0px 5px rgba(0, 123, 255, 0.5);
+}
+
+button {
+    background: white;
+    color: #007bff;
+    border: 2px solid #007bff;  /* Tambahkan border biru */
+    padding: 5px 5px;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+button i {
+    font-size: 18px;
+    color: #007bff; /* Warna ikon biru */
+}
+
+button:hover {
+    background: #007bff;
+    border-color: #007bff; /* Pastikan border tetap biru */
+}
+
+button:hover i {
+    color: white; /* Ubah ikon menjadi putih saat hover */
 }
 
 /* ==== Modal Styling ==== */
@@ -219,6 +280,20 @@ body {
     .add-buttons {
         flex-direction: column;
     }
+        .container {
+        flex-direction: column;
+        text-align: center;
+        padding: 10px;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        margin: 10px 0;
+    }
+
+    button {
+        width: 100%;
+    }
 }
 
 /* ==== Hidden Class ==== */
@@ -229,7 +304,14 @@ body {
     </style>
 </head>
 <body>
-    <h2>Bani Jumadi</h2>
+    <div class="container">
+        <h2>Bani Jumadi</h2>
+        <input type="text" id="nodeInput" list="nameSuggestions" placeholder="Cari nama..." oninput="filterNames()">
+        <datalist id="nameSuggestions"></datalist>
+        <button onclick="searchNode()">
+            <i class="fas fa-search"></i>
+        </button>        
+    </div>
     <div id="myDiagramDiv"></div>
     <div id="modal" class="modal">
         <button class="close-btn" onclick="closeModal()">X</button>
@@ -335,9 +417,9 @@ var $ = go.GraphObject.make;
 var myDiagram = $(go.Diagram, "myDiagramDiv", {
     "undoManager.isEnabled": true,
     layout: $(go.TreeLayout, {
-        angle: 90,
-        layerSpacing: 50,
-        nodeSpacing: 30,
+        angle: 0,
+        layerSpacing: 30,
+        nodeSpacing: 5,
         alignment: go.TreeLayout.AlignmentCenter,
         sorting: go.TreeLayout.SortingAscending
     })
@@ -374,7 +456,7 @@ myDiagram.nodeTemplate = $(go.Node, "Auto",
     ),
 
     $(go.TextBlock, {
-        margin: 5,
+        margin: 0,
         maxSize: new go.Size(90, NaN),
         wrap: go.TextBlock.WrapFit,
         overflow: go.TextBlock.OverflowEllipsis,
@@ -403,6 +485,46 @@ myDiagram.linkTemplate =
             $(go.TextBlock, "🪢", { font: "bold 10px sans-serif", stroke: "black" })
         )
     );
+    // Ambil semua nama dari diagram dan tambahkan ke datalist
+function filterNames() {
+    var input = document.getElementById("nodeInput").value.toLowerCase();
+    var datalist = document.getElementById("nameSuggestions");
+
+    // Kosongkan datalist setiap kali mengetik
+    datalist.innerHTML = "";
+
+    myDiagram.nodes.each(node => {
+        var nodeName = node.data.name;
+        if (nodeName && nodeName.toLowerCase().includes(input)) {
+            var option = document.createElement("option");
+            option.value = nodeName;
+            datalist.appendChild(option);
+        }
+    });
+}
+
+    function searchNode() {
+    var nodeName = document.getElementById("nodeInput").value.trim(); // Ambil nama yang diketik
+
+    if (nodeName) {
+        var selectedNode = null;
+
+        // Cari node berdasarkan nama dalam diagram
+        myDiagram.nodes.each(node => {
+            if (node.data.name && node.data.name.toLowerCase() === nodeName.toLowerCase()) {
+                selectedNode = node;
+            }
+        });
+
+        if (selectedNode) {
+            focusConnectedNodes(selectedNode); // Fokus ke node yang ditemukan
+        } else {
+            alert("Node dengan nama '" + nodeName + "' tidak ditemukan.");
+        }
+    } else {
+        alert("Masukkan nama node terlebih dahulu.");
+    }
+}
 
 // Fungsi untuk menyorot node yang dipilih dan semua node yang terhubung hingga ke bawah
 function focusConnectedNodes(selectedNode) {
