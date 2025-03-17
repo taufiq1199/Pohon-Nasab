@@ -47,7 +47,7 @@ body {
     position: start;
     top: -10px;
 }
-.container {
+.search-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -59,13 +59,13 @@ body {
     margin: auto;
 }
 
-h2 {
-    font-size: 17px;
+.search-container h2 {
+    font-size: 20px;
     color: #333;
     margin: 0;
 }
 
-input[type="text"] {
+.search-container input[type="text"] {
     flex: 1;
     padding: 8px 12px;
     border: 1px solid #ccc;
@@ -76,12 +76,12 @@ input[type="text"] {
     transition: all 0.3s ease-in-out;
 }
 
-input[type="text"]:focus {
+.search-container input[type="text"]:focus {
     border-color: #007bff;
     box-shadow: 0px 0px 5px rgba(0, 123, 255, 0.5);
 }
 
-button {
+.search-container button {
     background: white;
     color: #007bff;
     border: 2px solid #007bff;  /* Tambahkan border biru */
@@ -95,17 +95,17 @@ button {
     justify-content: center;
 }
 
-button i {
+.search-container button i {
     font-size: 18px;
     color: #007bff; /* Warna ikon biru */
 }
 
-button:hover {
+.search-container button:hover {
     background: #007bff;
     border-color: #007bff; /* Pastikan border tetap biru */
 }
 
-button:hover i {
+.search-container button:hover i {
     color: white; /* Ubah ikon menjadi putih saat hover */
 }
 
@@ -280,18 +280,18 @@ button:hover i {
     .add-buttons {
         flex-direction: column;
     }
-        .container {
+    .search-container {
         flex-direction: column;
         text-align: center;
         padding: 10px;
     }
 
-    input[type="text"] {
+    .search-container input[type="text"] {
         width: 100%;
         margin: 10px 0;
     }
 
-    button {
+    .search-container button {
         width: 100%;
     }
 }
@@ -304,7 +304,7 @@ button:hover i {
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="search-container">
         <h2>Bani Jumadi</h2>
         <input type="text" id="nodeInput" list="nameSuggestions" placeholder="Cari nama..." oninput="filterNames()">
         <datalist id="nameSuggestions"></datalist>
